@@ -2,37 +2,46 @@ var http = require("http");
 
 var fs = require("fs");
 
+const path = require("path");
+
 const { parse } = require("querystring");
 
-const indexPage = fs.readFileSync("./index.html", "utf-8");
+const indexPage = fs.readFileSync(path.join(__dirname, "index.html"));
 
 const server = http.createServer(function (req, res) {
     if (req.url === "/") {
-        res.writeHead(200, { "Content-Type": "text/html" });
+        console.log('yes!')
+        res.writeHead(200, { "Content-Type": "text/html",  "my-very-header": "custom header"
+    });
         res.write(indexPage);
         res.end();
-}
- else if (req.body === "POST" && req.url === "/message") {
-    let body = "";
-    req.on("data", (chunk) => {
-      body += chunk.toString(); // convert Buffer to string
-    });
-      console.log('converted');
-    req.on("end", () => {
-      const { message } = parse(body);
+    }
+    else if (req.method === "POST" && req.url === "/message") {
+        let body = "";
+        req.on("data", (chunk) => {
+            body += chunk.toString(); // convert Buffer to string
+        });
+        console.log('converted');
+        req.on("end", () => {
 
-      fs.writeFile("./message.txt", message, "utf-8", (err) => {
-        console.log("file written");
-      });
-    });
+            const {
 
-    res.end();
+                message
+
+            } = parse(body);
+
+            fs.writeFile(path.join(__dirname, "message"), message, "utf-8", err => {
+
+                console.log("file written");
+
+            })
+
+        })
+        res.end();
     } else {
         res.write(indexPage);
-      res.end();
     };
-  }
-)
+});
 
 
 server.listen(8080, "127.0.0.1");
